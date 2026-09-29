@@ -1,0 +1,9 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5436:5432"
+    environment:
+      POSTGRES_DB: anjo_guarda
+      POSTGRES_USER: anjo
+      POSTGRES_PASSWORD: anjo

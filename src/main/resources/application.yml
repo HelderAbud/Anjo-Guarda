@@ -1,0 +1,24 @@
+server:
+  port: 8086
+
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5436/anjo_guarda}
+    username: ${DB_USER:anjo}
+    password: ${DB_PASSWORD:anjo}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+  flyway:
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
