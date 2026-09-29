@@ -1,0 +1,4 @@
+app:
+  jwt:
+    secret: test-only-secret-with-32-bytes-min
+    access-ttl-seconds: 900

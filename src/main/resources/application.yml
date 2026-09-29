@@ -13,6 +13,11 @@ spring:
   flyway:
     enabled: true
 
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    access-ttl-seconds: 900
+
 management:
   endpoints:
     web:
