@@ -46,4 +46,8 @@ public class UserAccount {
     public String getStatus() {
         return status;
     }
+
+    public void replacePasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
 }
