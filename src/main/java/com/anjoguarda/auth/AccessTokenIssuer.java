@@ -32,6 +32,10 @@ public class AccessTokenIssuer {
                 .compact();
     }
 
+    public String parseSubject(String token) {
+        return Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload().getSubject();
+    }
+
     public long ttlSeconds() {
         return ttlSeconds;
     }
