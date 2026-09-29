@@ -38,4 +38,22 @@ public class RefreshToken {
         this.expiresAt = expiresAt;
         this.createdAt = createdAt;
     }
+
+    public UUID getUserId() {
+        return userId;
+    }
+
+    public Instant getExpiresAt() {
+        return expiresAt;
+    }
+
+    public boolean isRevoked() {
+        return revokedAt != null;
+    }
+
+    public void revoke(Instant when) {
+        if (revokedAt == null) {
+            revokedAt = when;
+        }
+    }
 }

@@ -56,6 +56,45 @@ public class LoginService {
         return new LoginResponse(accessTokenIssuer.issue(user.getId().toString(), now), refreshToken, accessTokenIssuer.ttlSeconds());
     }
 
+    @Transactional(noRollbackFor = ResponseStatusException.class)
+    public LoginResponse refresh(String rawRefreshToken) {
+        Instant now = Instant.now();
+        String hash = sha256(rawRefreshToken);
+        RefreshToken current = refreshTokens.findByTokenHash(hash)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Sessão inválida"));
+
+        if (current.isRevoked() || !current.getExpiresAt().isAfter(now)) {
+            if (current.isRevoked()) {
+                refreshTokens.revokeActiveByUserId(current.getUserId(), now);
+            } else {
+                refreshTokens.revokeIfActive(hash, now);
+            }
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Sessão inválida");
+        }
+
+        if (refreshTokens.revokeIfActive(hash, now) == 0) {
+            refreshTokens.revokeActiveByUserId(current.getUserId(), now);
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Sessão inválida");
+        }
+
+        String nextRefresh = newRefreshToken();
+        refreshTokens.save(new RefreshToken(
+                UUID.randomUUID(),
+                current.getUserId(),
+                sha256(nextRefresh),
+                now.plusSeconds(REFRESH_TTL_SECONDS),
+                now));
+        return new LoginResponse(
+                accessTokenIssuer.issue(current.getUserId().toString(), now),
+                nextRefresh,
+                accessTokenIssuer.ttlSeconds());
+    }
+
+    @Transactional
+    public void logout(String rawRefreshToken) {
+        refreshTokens.revokeIfActive(sha256(rawRefreshToken), Instant.now());
+    }
+
     private String newRefreshToken() {
         byte[] bytes = new byte[32];
         random.nextBytes(bytes);
