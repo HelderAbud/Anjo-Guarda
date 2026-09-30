@@ -2,6 +2,8 @@ server:
   port: 8086
 
 spring:
+  jackson:
+    time-zone: America/Sao_Paulo
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5436/anjo_guarda}
     username: ${DB_USER:anjo}
