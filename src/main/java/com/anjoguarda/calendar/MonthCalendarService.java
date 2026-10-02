@@ -34,6 +34,7 @@ public class MonthCalendarService {
     private final CustodyPlanRepository plans;
     private final ScheduleRuleRepository rules;
     private final CalendarExceptionRepository exceptions;
+    private final CalendarConfirmationRepository confirmations;
     private final ObjectMapper objectMapper;
     private final CustodyDayCalculator calculator = new CustodyDayCalculator();
 
@@ -43,12 +44,14 @@ public class MonthCalendarService {
             CustodyPlanRepository plans,
             ScheduleRuleRepository rules,
             CalendarExceptionRepository exceptions,
+            CalendarConfirmationRepository confirmations,
             ObjectMapper objectMapper) {
         this.children = children;
         this.access = access;
         this.plans = plans;
         this.rules = rules;
         this.exceptions = exceptions;
+        this.confirmations = confirmations;
         this.objectMapper = objectMapper;
     }
 
@@ -59,7 +62,9 @@ public class MonthCalendarService {
         ActiveRule rule = activeRule(childId);
         LocalDate date = yearMonth.atDay(1).atStartOfDay(BrazilTime.ZONE).toLocalDate();
         LocalDate limit = yearMonth.plusMonths(1).atDay(1).atStartOfDay(BrazilTime.ZONE).toLocalDate();
-        Map<LocalDate, UUID> overrides = exceptionsByDate(childId, date, limit.minusDays(1));
+        LocalDate last = limit.minusDays(1);
+        Map<LocalDate, UUID> overrides = exceptionsByDate(childId, date, last);
+        Map<LocalDate, CalendarConfirmation> confirmed = confirmationsByDate(childId, date, last);
         List<MonthCalendarResponse.DayResponse> days = new ArrayList<>();
         while (date.isBefore(limit)) {
             UUID planned = rule == null
@@ -67,8 +72,11 @@ public class MonthCalendarService {
                     : calculator.guardianOn(date, rule.start(), rule.end(), rule.type(), rule.configuration());
             boolean hasException = overrides.containsKey(date);
             UUID guardianId = hasException ? overrides.get(date) : planned;
+            CalendarConfirmation confirmation = confirmed.get(date);
+            String status = confirmation == null ? "PLANEJADO" : confirmation.getStatus();
+            UUID realizedGuardianId = confirmation == null ? null : confirmation.getRealizedGuardianId();
             days.add(new MonthCalendarResponse.DayResponse(
-                    date, date.getDayOfWeek().name(), guardianId, hasException));
+                    date, date.getDayOfWeek().name(), guardianId, hasException, status, realizedGuardianId));
             date = date.plusDays(1);
         }
         return new MonthCalendarResponse(childId, year, month, BrazilTime.ZONE.getId(), days);
@@ -80,6 +88,14 @@ public class MonthCalendarService {
             overrides.put(exception.getDate(), exception.getNewGuardianId());
         }
         return overrides;
+    }
+
+    private Map<LocalDate, CalendarConfirmation> confirmationsByDate(UUID childId, LocalDate start, LocalDate end) {
+        Map<LocalDate, CalendarConfirmation> byDate = new HashMap<>();
+        for (CalendarConfirmation confirmation : confirmations.findByChildIdAndDateBetween(childId, start, end)) {
+            byDate.put(confirmation.getDate(), confirmation);
+        }
+        return byDate;
     }
 
     private YearMonth yearMonth(int year, int month) {
