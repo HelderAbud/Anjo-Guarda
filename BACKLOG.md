@@ -28,11 +28,11 @@ Ainda sem protótipo de tela. Só entra se você pedir.
 
 ## Fase 3 — Realização e diário
 
-| ID | História | Aceite |
-|---|---|---|
-| DAY-002 | Confirmar o que aconteceu | Status realizado, alterado ou não realizado; sem confirmação o dia continua planejado; uma confirmação por criança e data |
-| DAY-001 | Escrever a observação do dia | Uma observação ativa por criança e data; apagar é lógico |
-| CAL-004 | Pesquisar observações | Filtro por criança e período |
+| ID | História | Aceite | Status |
+|---|---|---|---|
+| DAY-002 | Confirmar o que aconteceu | Status realizado, alterado ou não realizado; sem confirmação o dia continua planejado; uma confirmação por criança e data | Feito |
+| DAY-001 | Escrever a observação do dia | Uma observação ativa por criança e data; apagar é lógico | |
+| CAL-004 | Pesquisar observações | Filtro por criança e período | |
 
 ## Fase 4 — Linha do tempo e relatórios
 
