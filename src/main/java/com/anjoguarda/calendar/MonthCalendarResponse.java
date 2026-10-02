@@ -6,5 +6,6 @@ import java.util.UUID;
 
 public record MonthCalendarResponse(UUID childId, int year, int month, String timeZone, List<DayResponse> days) {
 
-    public record DayResponse(LocalDate date, String weekday, UUID guardianId) {}
+    public record DayResponse(LocalDate date, String weekday, UUID guardianId, boolean exception) {}
 }
+

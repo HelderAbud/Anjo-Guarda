@@ -42,6 +42,12 @@ class MonthCalendarTest {
 
     @BeforeEach
     void clean() {
+        if (tableExists("audit_logs")) {
+            jdbcTemplate.update("DELETE FROM audit_logs");
+        }
+        if (tableExists("calendar_exceptions")) {
+            jdbcTemplate.update("DELETE FROM calendar_exceptions");
+        }
         if (tableExists("schedule_rules")) {
             jdbcTemplate.update("DELETE FROM schedule_rules");
         }
