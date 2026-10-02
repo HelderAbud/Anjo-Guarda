@@ -2,8 +2,6 @@
 
 Fonte: spec 4.1, seções 25, 29 e 35. Cada fase só começa com aprovação. Fases 7 e 8 não entram na primeira versão.
 
-Nada disto está implementado.
-
 ## Fase 0 — Planejamento
 
 Feito no alinhamento: modelo, arquitetura, lacunas 4.1, README e este backlog.
@@ -12,21 +10,21 @@ Ainda sem protótipo de tela. Só entra se você pedir.
 
 ## Fase 1 — Fundação
 
-| ID | História | Aceite |
-|---|---|---|
-| AUTH-001 | Entrar com e-mail e senha | Login emite access token curto e grava o refresh só como hash |
-| AUTH-002 | Sair e renovar a sessão | Logout revoga o refresh; reuso de token já rotacionado revoga a cadeia |
-| AUTH-003 | Recuperar o acesso sem e-mail | Script local redefine o hash da senha; não existe endpoint público de reset |
-| FAM-001 | Cadastrar a criança e os responsáveis | Responsável guarda `guardian_id`; `user_id` do responsável fica vazio neste uso pessoal |
+| ID | História | Aceite | Status |
+|---|---|---|---|
+| AUTH-001 | Entrar com e-mail e senha | Login emite access token curto e grava o refresh só como hash | Feito |
+| AUTH-002 | Sair e renovar a sessão | Logout revoga o refresh; reuso de token já rotacionado revoga a cadeia | Feito |
+| AUTH-003 | Recuperar o acesso sem e-mail | Script local redefine o hash da senha; não existe endpoint público de reset | Feito |
+| FAM-001 | Cadastrar a criança e os responsáveis | Responsável guarda `guardian_id`; `user_id` do responsável fica vazio neste uso pessoal | Feito |
 
 ## Fase 2 — Calendário
 
-| ID | História | Aceite |
-|---|---|---|
-| SCH-001 | Configurar a regra recorrente | `configuration_json` cita só `guardian_id`; o mês não é gravado como tabela |
-| CAL-001 | Ver o mês inteiro | Grade de segunda a domingo, com botão Hoje e mês anterior/próximo |
-| CAL-002 | Saber com quem a criança fica em cada data | O dia mostra o responsável calculado pela regra |
-| CAL-003 | Registrar uma exceção | Uma exceção por criança e data; troca o dia sem apagar a regra; auditoria |
+| ID | História | Aceite | Status |
+|---|---|---|---|
+| SCH-001 | Configurar a regra recorrente | `configuration_json` cita só `guardian_id`; o mês não é gravado como tabela | Feito |
+| CAL-001 | Ver o mês inteiro | Grade de segunda a domingo, com botão Hoje e mês anterior/próximo | Feito (API mês) |
+| CAL-002 | Saber com quem a criança fica em cada data | O dia mostra o responsável calculado pela regra | Feito |
+| CAL-003 | Registrar uma exceção | Uma exceção por criança e data; troca o dia sem apagar a regra; auditoria | Feito |
 
 ## Fase 3 — Realização e diário
 

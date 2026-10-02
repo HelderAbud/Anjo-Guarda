@@ -39,6 +39,10 @@ public class Guardian {
         return id;
     }
 
+    public UUID getChildId() {
+        return childId;
+    }
+
     public String getName() {
         return name;
     }

@@ -15,6 +15,7 @@ import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -32,6 +33,7 @@ public class MonthCalendarService {
     private final FamilyAccessRepository access;
     private final CustodyPlanRepository plans;
     private final ScheduleRuleRepository rules;
+    private final CalendarExceptionRepository exceptions;
     private final ObjectMapper objectMapper;
     private final CustodyDayCalculator calculator = new CustodyDayCalculator();
 
@@ -40,11 +42,13 @@ public class MonthCalendarService {
             FamilyAccessRepository access,
             CustodyPlanRepository plans,
             ScheduleRuleRepository rules,
+            CalendarExceptionRepository exceptions,
             ObjectMapper objectMapper) {
         this.children = children;
         this.access = access;
         this.plans = plans;
         this.rules = rules;
+        this.exceptions = exceptions;
         this.objectMapper = objectMapper;
     }
 
@@ -55,15 +59,27 @@ public class MonthCalendarService {
         ActiveRule rule = activeRule(childId);
         LocalDate date = yearMonth.atDay(1).atStartOfDay(BrazilTime.ZONE).toLocalDate();
         LocalDate limit = yearMonth.plusMonths(1).atDay(1).atStartOfDay(BrazilTime.ZONE).toLocalDate();
+        Map<LocalDate, UUID> overrides = exceptionsByDate(childId, date, limit.minusDays(1));
         List<MonthCalendarResponse.DayResponse> days = new ArrayList<>();
         while (date.isBefore(limit)) {
-            UUID guardianId = rule == null
+            UUID planned = rule == null
                     ? null
                     : calculator.guardianOn(date, rule.start(), rule.end(), rule.type(), rule.configuration());
-            days.add(new MonthCalendarResponse.DayResponse(date, date.getDayOfWeek().name(), guardianId));
+            boolean hasException = overrides.containsKey(date);
+            UUID guardianId = hasException ? overrides.get(date) : planned;
+            days.add(new MonthCalendarResponse.DayResponse(
+                    date, date.getDayOfWeek().name(), guardianId, hasException));
             date = date.plusDays(1);
         }
         return new MonthCalendarResponse(childId, year, month, BrazilTime.ZONE.getId(), days);
+    }
+
+    private Map<LocalDate, UUID> exceptionsByDate(UUID childId, LocalDate start, LocalDate end) {
+        Map<LocalDate, UUID> overrides = new HashMap<>();
+        for (CalendarException exception : exceptions.findByChildIdAndDateBetween(childId, start, end)) {
+            overrides.put(exception.getDate(), exception.getNewGuardianId());
+        }
+        return overrides;
     }
 
     private YearMonth yearMonth(int year, int month) {

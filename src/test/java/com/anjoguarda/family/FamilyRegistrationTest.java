@@ -41,6 +41,12 @@ class FamilyRegistrationTest {
 
     @BeforeEach
     void clean() {
+        if (tableExists("audit_logs")) {
+            jdbcTemplate.update("DELETE FROM audit_logs");
+        }
+        if (tableExists("calendar_exceptions")) {
+            jdbcTemplate.update("DELETE FROM calendar_exceptions");
+        }
         jdbcTemplate.update("DELETE FROM guardians");
         jdbcTemplate.update("DELETE FROM children");
         jdbcTemplate.update("DELETE FROM family_access");
@@ -104,6 +110,14 @@ class FamilyRegistrationTest {
                 Map.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         return (String) response.getBody().get("accessToken");
+    }
+
+    private boolean tableExists(String table) {
+        Integer count = jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name = ?",
+                Integer.class,
+                table);
+        return count != null && count > 0;
     }
 
     private HttpHeaders bearer(String token) {
