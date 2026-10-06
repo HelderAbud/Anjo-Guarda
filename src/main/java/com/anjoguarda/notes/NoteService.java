@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
@@ -58,12 +59,17 @@ public class NoteService {
     }
 
     @Transactional(readOnly = true)
-    public List<NoteResponse> list(UUID userId, UUID childId, LocalDate from, LocalDate to) {
+    public List<NoteResponse> list(
+            UUID userId, UUID childId, LocalDate from, LocalDate to, String query, NoteCategory category) {
         requireChild(userId, childId);
         if (from.isAfter(to)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Período inválido");
         }
+        String term = query == null ? "" : query.trim().toLowerCase(Locale.ROOT);
+        String categoryName = category == null ? null : category.name();
         return notes.findByChildIdAndDeletedAtIsNullAndDateBetweenOrderByDateAsc(childId, from, to).stream()
+                .filter(note -> categoryName == null || categoryName.equals(note.getCategory()))
+                .filter(note -> term.isEmpty() || note.getText().toLowerCase(Locale.ROOT).contains(term))
                 .map(this::toResponse)
                 .toList();
     }
