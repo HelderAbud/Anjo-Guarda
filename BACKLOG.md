@@ -32,7 +32,7 @@ Ainda sem protótipo de tela. Só entra se você pedir.
 |---|---|---|---|
 | DAY-002 | Confirmar o que aconteceu | Status realizado, alterado ou não realizado; sem confirmação o dia continua planejado; uma confirmação por criança e data | Feito |
 | DAY-001 | Escrever a observação do dia | Uma observação ativa por criança e data; apagar é lógico | Feito |
-| CAL-004 | Pesquisar observações | Filtro por criança e período | |
+| CAL-004 | Pesquisar observações | Filtro por criança, período, texto e categoria | Feito |
 
 ## Fase 4 — Linha do tempo e relatórios
 

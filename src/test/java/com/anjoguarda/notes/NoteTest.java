@@ -2,6 +2,8 @@ package com.anjoguarda.notes;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -156,6 +158,50 @@ class NoteTest {
         assertThat(count("NOTE_DELETED")).isEqualTo(1);
     }
 
+    @Test
+    void searchesActiveObservationsByTextAndCategory() {
+        String ana = login("ana@example.com");
+        String lia = registerChild(ana, "Lia");
+        postOk(ana, lia, "2026-03-03", "ESCOLA", "Reuniao da escola");
+        postOk(ana, lia, "2026-03-04", "SAUDE", "Consulta");
+        postOk(ana, lia, "2026-03-05", "ESCOLA", "Passeio no parque");
+        postOk(ana, lia, "2026-04-01", "ESCOLA", "Reuniao fora do mes");
+
+        assertThat(list(ana, lia, "2026-03-01", "2026-03-31")).hasSize(3);
+        assertThat(search(ana, lia, "2026-03-01", "2026-03-31", "   ", null)).hasSize(3);
+        assertThat(texts(search(ana, lia, "2026-03-01", "2026-03-31", "reuniao", null)))
+                .containsExactly("Reuniao da escola");
+        assertThat(texts(search(ana, lia, "2026-03-01", "2026-03-31", "DA ESCOLA", "ESCOLA")))
+                .containsExactly("Reuniao da escola");
+        assertThat(texts(search(ana, lia, "2026-03-01", "2026-03-31", null, "ESCOLA")))
+                .containsExactly("Reuniao da escola", "Passeio no parque");
+        assertThat(search(ana, lia, "2026-03-01", "2026-03-31", "consulta", "ESCOLA")).isEmpty();
+
+        String noteId = (String) list(ana, lia, "2026-03-03", "2026-03-03").get(0).get("id");
+        ResponseEntity<Void> deleted = restTemplate.exchange(
+                "/api/v1/notes/" + noteId,
+                HttpMethod.DELETE,
+                new HttpEntity<>(null, bearer(ana)),
+                Void.class);
+        assertThat(deleted.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        assertThat(search(ana, lia, "2026-03-01", "2026-03-31", "reuniao", null)).isEmpty();
+
+        String other = login("outra@example.com");
+        ResponseEntity<String> hidden = restTemplate.exchange(
+                "/api/v1/notes?childId=" + lia + "&from=2026-03-01&to=2026-03-31&q=consulta",
+                HttpMethod.GET,
+                new HttpEntity<>(null, bearer(other)),
+                String.class);
+        assertThat(hidden.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+
+        ResponseEntity<String> badCategory = restTemplate.exchange(
+                "/api/v1/notes?childId=" + lia + "&from=2026-03-01&to=2026-03-31&category=INVALIDA",
+                HttpMethod.GET,
+                new HttpEntity<>(null, bearer(ana)),
+                String.class);
+        assertThat(badCategory.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
     private Integer count(String action) {
         return jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM audit_logs WHERE action = ?", Integer.class, action);
@@ -186,6 +232,25 @@ class NoteTest {
                 new ParameterizedTypeReference<>() {});
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         return response.getBody();
+    }
+
+    private List<Map<String, Object>> search(
+            String token, String childId, String from, String to, String q, String category) {
+        String url = "/api/v1/notes?childId=" + childId + "&from=" + from + "&to=" + to;
+        if (q != null) {
+            url += "&q=" + URLEncoder.encode(q, StandardCharsets.UTF_8);
+        }
+        if (category != null) {
+            url += "&category=" + category;
+        }
+        ResponseEntity<List<Map<String, Object>>> response = restTemplate.exchange(
+                url, HttpMethod.GET, new HttpEntity<>(null, bearer(token)), new ParameterizedTypeReference<>() {});
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        return response.getBody();
+    }
+
+    private List<String> texts(List<Map<String, Object>> notes) {
+        return notes.stream().map(note -> (String) note.get("text")).toList();
     }
 
     private Map<String, Object> body(String childId, String date, String category, String text) {

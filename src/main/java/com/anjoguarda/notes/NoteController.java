@@ -34,8 +34,12 @@ public class NoteController {
 
     @GetMapping
     public List<NoteResponse> list(
-            @RequestParam UUID childId, @RequestParam LocalDate from, @RequestParam LocalDate to) {
-        return noteService.list(currentUserId(), childId, from, to);
+            @RequestParam UUID childId,
+            @RequestParam LocalDate from,
+            @RequestParam LocalDate to,
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) NoteCategory category) {
+        return noteService.list(currentUserId(), childId, from, to, q, category);
     }
 
     @PatchMapping("/{id}")
