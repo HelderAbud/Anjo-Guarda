@@ -110,4 +110,8 @@ public class CalendarConfirmation {
     public String getNote() {
         return note;
     }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
 }
