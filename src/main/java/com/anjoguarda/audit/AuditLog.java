@@ -50,4 +50,24 @@ public class AuditLog {
     public UUID getId() {
         return id;
     }
+
+    public String getAction() {
+        return action;
+    }
+
+    public String getEntityType() {
+        return entityType;
+    }
+
+    public UUID getEntityId() {
+        return entityId;
+    }
+
+    public String getMetadata() {
+        return metadata;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
 }
