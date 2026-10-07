@@ -1,5 +1,7 @@
 package com.anjoguarda.auth;
 
+import com.anjoguarda.audit.AuditLog;
+import com.anjoguarda.audit.AuditLogRepository;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -22,6 +24,7 @@ public class LoginService {
 
     private final UserAccountRepository users;
     private final RefreshTokenRepository refreshTokens;
+    private final AuditLogRepository audits;
     private final PasswordEncoder passwordEncoder;
     private final AccessTokenIssuer accessTokenIssuer;
     private final SecureRandom random = new SecureRandom();
@@ -29,10 +32,12 @@ public class LoginService {
     public LoginService(
             UserAccountRepository users,
             RefreshTokenRepository refreshTokens,
+            AuditLogRepository audits,
             PasswordEncoder passwordEncoder,
             AccessTokenIssuer accessTokenIssuer) {
         this.users = users;
         this.refreshTokens = refreshTokens;
+        this.audits = audits;
         this.passwordEncoder = passwordEncoder;
         this.accessTokenIssuer = accessTokenIssuer;
     }
@@ -52,6 +57,7 @@ public class LoginService {
                 sha256(refreshToken),
                 now.plusSeconds(REFRESH_TTL_SECONDS),
                 now));
+        audits.save(new AuditLog(UUID.randomUUID(), user.getId(), "LOGIN", "user", user.getId(), "{}"));
 
         return new LoginResponse(accessTokenIssuer.issue(user.getId().toString(), now), refreshToken, accessTokenIssuer.ttlSeconds());
     }
