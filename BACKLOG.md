@@ -40,7 +40,7 @@ Ainda sem protótipo de tela. Só entra se você pedir.
 |---|---|---|---|
 | HIS-001 | Ver a linha do tempo de um período | Lista cronológica de exceções, confirmações, observações e auditoria | Feito |
 | AUD-001 | Consultar alterações críticas | Login, exceção, confirmação, observação, documento, importação aprovada e relatório ficam auditados | Feito (login e consulta) |
-| REP-001 | Gerar o resumo mensal | Nova geração cria nova versão; snapshot em JSON; a versão anterior não é sobrescrita | |
+| REP-001 | Gerar o resumo mensal | Nova geração cria nova versão; snapshot em JSON; a versão anterior não é sobrescrita | Feito |
 | REP-002 | Exportar o mês em PDF | O PDF sai do JSON da versão escolhida | |
 
 ## Fase 5 — Documentos
