@@ -2,12 +2,15 @@ package com.anjoguarda.report;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -17,6 +20,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -125,6 +129,56 @@ class MonthlyReportTest {
         Integer audits = jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM audit_logs WHERE action = 'REPORT_CREATED'", Integer.class);
         assertThat(audits).isEqualTo(2);
+    }
+
+    @Test
+    void exportsTheStoredVersionAsPdfWithoutChangingTheJson() throws Exception {
+        String ana = login("ana@example.com");
+        String lia = registerChild(ana, "Lia");
+        List<Map<String, Object>> guardians = guardiansOf(ana, lia);
+        String start = (String) guardians.get(0).get("id");
+        String alternate = (String) guardians.get(1).get("id");
+        savePlan(ana, lia, start, alternate);
+        assertThat(postConfirmation(ana, lia, "2026-03-04", "REALIZADO", null, null).getStatusCode())
+                .isEqualTo(HttpStatus.CREATED);
+
+        ResponseEntity<Map<String, Object>> created = generate(ana, lia, 2026, 3);
+        assertThat(created.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        String reportId = (String) created.getBody().get("id");
+        String before = snapshotText(reportId);
+
+        ResponseEntity<byte[]> pdf = pdf(ana, reportId);
+        assertThat(pdf.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(pdf.getHeaders().getContentType()).isEqualTo(MediaType.APPLICATION_PDF);
+        assertThat(new String(pdf.getBody(), StandardCharsets.ISO_8859_1)).startsWith("%PDF");
+        String text;
+        try (var document = Loader.loadPDF(pdf.getBody())) {
+            text = new PDFTextStripper().getText(document);
+        }
+        assertThat(text).contains("Lia", "2026-03", "versao 1", "REALIZADO", "2026-03-04");
+        assertThat(snapshotText(reportId)).isEqualTo(before);
+        assertThat(jdbcTemplate.queryForObject(
+                        "SELECT count(*) FROM monthly_reports WHERE child_id = ?", Integer.class, UUID.fromString(lia)))
+                .isEqualTo(1);
+
+        String other = login("outra@example.com");
+        assertThat(pdf(other, reportId).getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(pdf(ana, UUID.randomUUID().toString()).getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    }
+
+    private ResponseEntity<byte[]> pdf(String token, String id) {
+        return restTemplate.exchange(
+                "/api/v1/reports/monthly/" + id + "/pdf",
+                HttpMethod.GET,
+                new HttpEntity<>(null, bearer(token)),
+                byte[].class);
+    }
+
+    private String snapshotText(String reportId) {
+        return jdbcTemplate.queryForObject(
+                "SELECT content_snapshot::text FROM monthly_reports WHERE id = ?",
+                String.class,
+                UUID.fromString(reportId));
     }
 
     private ResponseEntity<Map<String, Object>> generate(String token, String childId, int year, int month) {
