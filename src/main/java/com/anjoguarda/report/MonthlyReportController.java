@@ -3,6 +3,7 @@ package com.anjoguarda.report;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,6 +39,13 @@ public class MonthlyReportController {
     @GetMapping("/{id}")
     public MonthlyReportResponse get(@PathVariable UUID id) {
         return monthlyReportService.get(currentUserId(), id);
+    }
+
+    @GetMapping(value = "/{id}/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> pdf(@PathVariable UUID id) {
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(monthlyReportService.pdf(currentUserId(), id));
     }
 
     private UUID currentUserId() {

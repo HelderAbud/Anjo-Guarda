@@ -99,6 +99,12 @@ public class MonthlyReportService {
         return toResponse(report);
     }
 
+    @Transactional(readOnly = true)
+    public byte[] pdf(UUID userId, UUID reportId) {
+        MonthlyReportResponse report = get(userId, reportId);
+        return MonthlyReportPdf.render(report.version(), report.contentSnapshot());
+    }
+
     private String writeSnapshot(Child child, MonthCalendarResponse calendar) {
         LocalDate start = LocalDate.of(calendar.year(), calendar.month(), 1);
         LocalDate end = start.withDayOfMonth(start.lengthOfMonth());
