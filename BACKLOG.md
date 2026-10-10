@@ -47,7 +47,7 @@ Ainda sem protótipo de tela. Só entra se você pedir.
 
 | ID | História | Aceite |
 |---|---|---|
-| DOC-001 | Guardar documentos | Upload com categoria e metadados; o nome original não vira caminho no disco |
+| DOC-001 | Guardar documentos | Upload com categoria e metadados; o nome original não vira caminho no disco | Feito |
 
 Storage de produção continua em aberto. Até lá, pasta local.
 

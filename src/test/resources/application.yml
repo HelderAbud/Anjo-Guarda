@@ -1,3 +1,13 @@
+spring:
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+anjo:
+  documents:
+    dir: documentos
+
 app:
   jwt:
     secret: test-only-secret-with-32-bytes-min
