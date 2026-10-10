@@ -22,6 +22,8 @@ spring:
 anjo:
   documents:
     dir: documentos
+  imports:
+    dir: imports-originais
 
 app:
   jwt:
