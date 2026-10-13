@@ -56,7 +56,7 @@ Storage de produção continua em aberto. Até lá, pasta local.
 | ID | História | Aceite |
 |---|---|---|
 | IMP-001 | Importar PDF ou DOCX | O original é guardado; nada é gravado no calendário sem confirmação | Feito |
-| IMP-002 | Resolver conflitos antes de gravar | Cada item é aprovado ou rejeitado; aprovado aponta a entidade criada ou mantida |
+| IMP-002 | Resolver conflitos antes de gravar | Cada item é aprovado ou rejeitado; aprovado aponta a entidade criada ou mantida | Feito |
 
 ## Fora da primeira versão
 
