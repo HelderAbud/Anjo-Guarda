@@ -71,9 +71,17 @@ class ImportTest {
         if (tableExists("audit_logs")) {
             jdbcTemplate.update("DELETE FROM audit_logs");
         }
+        if (tableExists("import_items")) {
+            jdbcTemplate.update("DELETE FROM import_items");
+        }
         if (tableExists("imports")) {
             jdbcTemplate.update("DELETE FROM imports");
         }
+        jdbcTemplate.update("DELETE FROM daily_notes");
+        jdbcTemplate.update("DELETE FROM calendar_confirmations");
+        jdbcTemplate.update("DELETE FROM calendar_exceptions");
+        jdbcTemplate.update("DELETE FROM schedule_rules");
+        jdbcTemplate.update("DELETE FROM custody_plans");
         jdbcTemplate.update("DELETE FROM guardians");
         jdbcTemplate.update("DELETE FROM children");
         jdbcTemplate.update("DELETE FROM family_access");
@@ -175,6 +183,122 @@ class ImportTest {
         assertThat(count("calendar_exceptions")).isZero();
     }
 
+    @Test
+    void keepsTheMarkedObservationOutOfTheCalendarUntilItIsApproved() throws IOException {
+        String ana = login("ana@example.com");
+        String lia = registerChild(ana, "Lia");
+        byte[] docx = docxLines("texto solto", "OBSERVACAO 2026-03-04 ESCOLA Reuniao da escola");
+
+        ResponseEntity<Map<String, Object>> created = upload(ana, lia, "revisao.docx", docx, DOCX);
+        assertThat(created.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        String importId = (String) created.getBody().get("id");
+        assertThat(created.getBody().get("extractedText").toString()).contains("texto solto");
+        Map<String, Object> item = onlyItem(created.getBody());
+        assertThat(item).containsEntry("type", "OBSERVACAO");
+        assertThat(item).containsEntry("confidence", 1);
+        assertThat(item).containsEntry("conflict", false);
+        assertThat(item.get("approved")).isNull();
+        assertThat(item.get("resultingEntityId")).isNull();
+        assertThat(proposed(item)).containsEntry("date", "2026-03-04");
+        assertThat(proposed(item)).containsEntry("category", "ESCOLA");
+        assertThat(proposed(item)).containsEntry("text", "Reuniao da escola");
+        assertThat(notes(ana, lia)).isEmpty();
+
+        String itemId = (String) item.get("id");
+        ResponseEntity<Map<String, Object>> approved = approve(ana, importId, List.of(Map.of("itemId", itemId, "approved", true)));
+        assertThat(approved.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(approved.getBody()).containsEntry("status", "REVISADO");
+        Map<String, Object> decided = onlyItem(approved.getBody());
+        assertThat(decided).containsEntry("approved", true);
+        assertThat(decided).containsEntry("resultingEntityType", "daily_note");
+
+        List<Map<String, Object>> written = notes(ana, lia);
+        assertThat(written).hasSize(1);
+        assertThat(written.get(0)).containsEntry("text", "Reuniao da escola");
+        assertThat(decided).containsEntry("resultingEntityId", written.get(0).get("id"));
+        assertThat(countWhere("IMPORT_APPROVED")).isEqualTo(1);
+        assertThat(countWhere("NOTE_CREATED")).isEqualTo(1);
+
+        assertThat(approve(ana, importId, List.of(Map.of("itemId", itemId, "approved", true))).getStatusCode())
+                .isEqualTo(HttpStatus.CONFLICT);
+        String other = login("outra@example.com");
+        assertThat(approve(other, importId, List.of(Map.of("itemId", itemId, "approved", false))).getStatusCode())
+                .isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(approve(ana, UUID.randomUUID().toString(), List.of()).getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    }
+
+    @Test
+    void resolvesAConflictBeforeWritingAndRejectsMergeOfAConfirmation() throws IOException {
+        String ana = login("ana@example.com");
+        String lia = registerChild(ana, "Lia");
+        postNote(ana, lia, "2026-03-04", "ESCOLA", "Original");
+
+        ResponseEntity<Map<String, Object>> imported = upload(
+                ana, lia, "conflito.docx", docxLines("OBSERVACAO 2026-03-04 SAUDE Texto novo"), DOCX);
+        String importId = (String) imported.getBody().get("id");
+        Map<String, Object> item = onlyItem(imported.getBody());
+        assertThat(item).containsEntry("conflict", true);
+        String itemId = (String) item.get("id");
+
+        assertThat(approve(ana, importId, List.of(Map.of("itemId", itemId, "approved", true))).getStatusCode())
+                .isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(notesOn(ana, lia, "2026-03-04").get(0)).containsEntry("text", "Original");
+        assertThat(notesOn(ana, lia, "2026-03-04").get(0)).containsEntry("category", "ESCOLA");
+
+        ResponseEntity<Map<String, Object>> kept = approve(
+                ana, importId, List.of(Map.of("itemId", itemId, "approved", true, "resolution", "MANTER")));
+        assertThat(kept.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(onlyItem(kept.getBody())).containsEntry("resultingEntityId", notesOn(ana, lia, "2026-03-04").get(0).get("id"));
+        assertThat(notesOn(ana, lia, "2026-03-04").get(0)).containsEntry("text", "Original");
+
+        ResponseEntity<Map<String, Object>> replacement = upload(
+                ana, lia, "troca.docx", docxLines("OBSERVACAO 2026-03-04 SAUDE Trocada"), DOCX);
+        String replacementId = (String) replacement.getBody().get("id");
+        String replacementItem = (String) onlyItem(replacement.getBody()).get("id");
+        ResponseEntity<Map<String, Object>> replaced = approve(
+                ana,
+                replacementId,
+                List.of(Map.of("itemId", replacementItem, "approved", true, "resolution", "SUBSTITUIR")));
+        assertThat(replaced.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(notesOn(ana, lia, "2026-03-04").get(0)).containsEntry("category", "SAUDE");
+        assertThat(notesOn(ana, lia, "2026-03-04").get(0)).containsEntry("text", "Trocada");
+
+        ResponseEntity<Map<String, Object>> merge = upload(
+                ana, lia, "mescla.docx", docxLines("OBSERVACAO 2026-03-04 ESCOLA Extra"), DOCX);
+        String mergeId = (String) merge.getBody().get("id");
+        String mergeItem = (String) onlyItem(merge.getBody()).get("id");
+        ResponseEntity<Map<String, Object>> merged = approve(
+                ana, mergeId, List.of(Map.of("itemId", mergeItem, "approved", true, "resolution", "MESCLAR")));
+        assertThat(merged.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(notesOn(ana, lia, "2026-03-04").get(0)).containsEntry("category", "SAUDE");
+        assertThat(notesOn(ana, lia, "2026-03-04").get(0)).containsEntry("text", "Trocada\nExtra");
+
+        ResponseEntity<Map<String, Object>> rejectedImport = upload(
+                ana, lia, "rejeita.docx", docxLines("OBSERVACAO 2026-03-05 ROTINA Nada"), DOCX);
+        String rejectedId = (String) rejectedImport.getBody().get("id");
+        String rejectedItem = (String) onlyItem(rejectedImport.getBody()).get("id");
+        ResponseEntity<Map<String, Object>> rejected = approve(
+                ana, rejectedId, List.of(Map.of("itemId", rejectedItem, "approved", false)));
+        assertThat(rejected.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(onlyItem(rejected.getBody()).get("resultingEntityId")).isNull();
+        assertThat(notesOn(ana, lia, "2026-03-05")).isEmpty();
+
+        List<Map<String, Object>> guardians = guardiansOf(ana, lia);
+        savePlan(ana, lia, (String) guardians.get(0).get("id"), (String) guardians.get(1).get("id"));
+        assertThat(postConfirmation(ana, lia, "2026-03-02", "REALIZADO").getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        ResponseEntity<Map<String, Object>> confirmationImport = upload(
+                ana, lia, "confirma.docx", docxLines("CONFIRMACAO 2026-03-02 REALIZADO"), DOCX);
+        String confirmationId = (String) confirmationImport.getBody().get("id");
+        Map<String, Object> confirmationItem = onlyItem(confirmationImport.getBody());
+        assertThat(confirmationItem).containsEntry("conflict", true);
+        assertThat(approve(
+                        ana,
+                        confirmationId,
+                        List.of(Map.of("itemId", confirmationItem.get("id"), "approved", true, "resolution", "MESCLAR")))
+                .getStatusCode())
+                .isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
     private HttpStatus uploadStatus(String token, String childId, String filename, byte[] bytes, MediaType mediaType) {
         ResponseEntity<String> response = restTemplate.exchange(
                 "/api/v1/imports",
@@ -182,6 +306,92 @@ class ImportTest {
                 new HttpEntity<>(parts(childId, filename, bytes, mediaType), multipart(token)),
                 String.class);
         return HttpStatus.valueOf(response.getStatusCode().value());
+    }
+
+    private Map<String, Object> onlyItem(Map<String, Object> body) {
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> items = (List<Map<String, Object>>) body.get("items");
+        assertThat(items).hasSize(1);
+        return items.get(0);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> proposed(Map<String, Object> item) {
+        return (Map<String, Object>) item.get("proposedData");
+    }
+
+    private ResponseEntity<Map<String, Object>> approve(String token, String importId, List<Map<String, Object>> decisions) {
+        return restTemplate.exchange(
+                "/api/v1/imports/" + importId + "/approve",
+                HttpMethod.POST,
+                new HttpEntity<>(Map.of("decisions", decisions), bearer(token)),
+                new ParameterizedTypeReference<>() {});
+    }
+
+    private List<Map<String, Object>> notes(String token, String childId) {
+        return notesOn(token, childId, "2026-03-04");
+    }
+
+    private List<Map<String, Object>> notesOn(String token, String childId, String date) {
+        ResponseEntity<List<Map<String, Object>>> response = restTemplate.exchange(
+                "/api/v1/notes?childId=" + childId + "&from=" + date + "&to=" + date,
+                HttpMethod.GET,
+                new HttpEntity<>(null, bearer(token)),
+                new ParameterizedTypeReference<>() {});
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        return response.getBody();
+    }
+
+    private void postNote(String token, String childId, String date, String category, String text) {
+        ResponseEntity<Map<String, Object>> created = restTemplate.exchange(
+                "/api/v1/notes",
+                HttpMethod.POST,
+                new HttpEntity<>(Map.of("childId", childId, "date", date, "category", category, "text", text), bearer(token)),
+                new ParameterizedTypeReference<>() {});
+        assertThat(created.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    }
+
+    private List<Map<String, Object>> guardiansOf(String token, String childId) {
+        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                "/api/v1/children/" + childId,
+                HttpMethod.GET,
+                new HttpEntity<>(null, bearer(token)),
+                new ParameterizedTypeReference<>() {});
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> guardians = (List<Map<String, Object>>) response.getBody().get("guardians");
+        return guardians;
+    }
+
+    private void savePlan(String token, String childId, String start, String alternate) {
+        ResponseEntity<Map<String, Object>> created = restTemplate.exchange(
+                "/api/v1/children/" + childId + "/custody-plan",
+                HttpMethod.POST,
+                new HttpEntity<>(Map.of(
+                        "name", "Convivencia",
+                        "startDate", "2026-03-02",
+                        "ruleType", "ALTERNATE_DAYS",
+                        "configuration", Map.of("start", start, "alternate", alternate)), bearer(token)),
+                new ParameterizedTypeReference<>() {});
+        assertThat(created.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    }
+
+    private ResponseEntity<Map<String, Object>> postConfirmation(
+            String token, String childId, String date, String status) {
+        Map<String, Object> body = new java.util.HashMap<>();
+        body.put("childId", childId);
+        body.put("date", date);
+        body.put("status", status);
+        return restTemplate.exchange(
+                "/api/v1/calendar/confirmations",
+                HttpMethod.POST,
+                new HttpEntity<>(body, bearer(token)),
+                new ParameterizedTypeReference<>() {});
+    }
+
+    private Integer countWhere(String action) {
+        return jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM audit_logs WHERE action = ?", Integer.class, action);
     }
 
     private ResponseEntity<Map<String, Object>> upload(
@@ -289,6 +499,17 @@ class ImportTest {
             document.addPage(new PDPage());
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             document.save(out);
+            return out.toByteArray();
+        }
+    }
+
+    private static byte[] docxLines(String... lines) throws IOException {
+        try (XWPFDocument document = new XWPFDocument()) {
+            for (String line : lines) {
+                document.createParagraph().createRun().setText(line);
+            }
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            document.write(out);
             return out.toByteArray();
         }
     }

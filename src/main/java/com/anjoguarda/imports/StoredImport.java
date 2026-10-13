@@ -86,4 +86,8 @@ public class StoredImport {
     public Instant getCreatedAt() {
         return createdAt;
     }
+
+    public void markReviewed() {
+        this.status = "REVISADO";
+    }
 }

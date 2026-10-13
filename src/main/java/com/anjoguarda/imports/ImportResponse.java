@@ -1,6 +1,7 @@
 package com.anjoguarda.imports;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 public record ImportResponse(
@@ -10,4 +11,5 @@ public record ImportResponse(
         String sourceType,
         String status,
         String extractedText,
-        Instant createdAt) {}
+        Instant createdAt,
+        List<ImportItemResponse> items) {}
