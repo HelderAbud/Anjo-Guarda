@@ -65,13 +65,24 @@ test("keeps the form when the api cannot be reached", async () => {
 });
 
 test("stores the session and can leave it", async () => {
-  const fetchMock = vi.fn().mockResolvedValueOnce({
-    ok: true,
-    json: async () => ({
-      accessToken: "access-1",
-      refreshToken: "refresh-1",
-      expiresInSeconds: 900,
-    }),
+  const fetchMock = vi.fn(async (url: string) => {
+    if (String(url).endsWith("/login")) {
+      return {
+        ok: true,
+        json: async () => ({
+          accessToken: "access-1",
+          refreshToken: "refresh-1",
+          expiresInSeconds: 900,
+        }),
+      };
+    }
+    if (String(url) === "/api/v1/children") {
+      return { ok: true, status: 200, json: async () => [] };
+    }
+    if (String(url).endsWith("/logout")) {
+      return { ok: true, status: 204 };
+    }
+    return { ok: true, status: 200, json: async () => ({ days: [] }) };
   });
   vi.stubGlobal("fetch", fetchMock);
   const user = userEvent.setup();
@@ -86,7 +97,6 @@ test("stores the session and can leave it", async () => {
     refreshToken: "refresh-1",
   });
 
-  fetchMock.mockResolvedValueOnce({ ok: true, status: 204 });
   await user.click(screen.getByRole("button", { name: "Sair" }));
   expect(await screen.findByRole("button", { name: "Entrar" })).toBeTruthy();
   expect(sessionStorage.getItem("anjo.session")).toBeNull();

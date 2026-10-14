@@ -9,7 +9,7 @@ body {
 }
 
 .panel {
-  max-width: 22rem;
+  max-width: 36rem;
   margin: 4rem auto;
   padding: 1.5rem;
   background: #fff;
@@ -45,6 +45,25 @@ button {
   border-radius: 8px;
   background: #9a3412;
   color: #fff;
+}
+
+h2 {
+  font-size: 1rem;
+}
+
+ul {
+  padding-left: 1.2rem;
+}
+
+select {
+  font: inherit;
+  margin-top: 0.25rem;
+}
+
+.bar {
+  max-width: 36rem;
+  margin: -3rem auto 2rem;
+  text-align: right;
 }
 
 p[role="alert"] {
