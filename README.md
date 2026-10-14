@@ -15,7 +15,7 @@ Fases 0 a 6, prefixo `/api/v1`: auth, família, plano, calendário mensal, exce�
 
 ## Tela
 
-`frontend/`: login com e-mail e senha, sem recuperação de senha. Depois de entrar, o dashboard mostra o resumo do mês, os próximos sete dias e as últimas cinco observações. O Vite encaminha `/api` para `localhost:8086`.
+`frontend/`: login com e-mail e senha, sem recuperação de senha. Depois de entrar, o painel mostra o resumo do mês e o calendário mostra a grade de segunda a domingo. O Vite encaminha `/api` para `localhost:8086`.
 
 ## Decisões fechadas
 
@@ -75,4 +75,4 @@ http://localhost:5173 encaminha `/api` para `localhost:8086`.
 
 ## Próximo
 
-Calendário em grade, quando você pedir.
+Detalhe do dia, quando você pedir.

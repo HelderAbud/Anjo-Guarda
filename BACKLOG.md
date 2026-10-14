@@ -22,7 +22,7 @@ Login e dashboard já existem. A grade do calendário ainda não.
 | ID | História | Aceite | Status |
 |---|---|---|---|
 | SCH-001 | Configurar a regra recorrente | `configuration_json` cita só `guardian_id`; o mês não é gravado como tabela | Feito |
-| CAL-001 | Ver o mês inteiro | Grade de segunda a domingo, com botão Hoje e mês anterior/próximo | Feito (API mês) |
+| CAL-001 | Ver o mês inteiro | Grade de segunda a domingo, com botão Hoje e mês anterior/próximo | Feito |
 | CAL-002 | Saber com quem a criança fica em cada data | O dia mostra o responsável calculado pela regra | Feito |
 | CAL-003 | Registrar uma exceção | Uma exceção por criança e data; troca o dia sem apagar a regra; auditoria | Feito |
 
