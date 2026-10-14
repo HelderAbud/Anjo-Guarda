@@ -1,6 +1,6 @@
 # Calendário de Convivência Familiar
 
-Aplicação web de uso pessoal para um responsável organizar a convivência de uma criança: calendário, planejado e realizado, uma observação por dia, histórico e, nas fases seguintes, documentos e relatório.
+Aplicação web de uso pessoal para um responsável organizar a convivência de uma criança: calendário calculado na leitura, planejado e realizado, uma observação por dia, histórico, documentos e relatório.
 
 Fonte de verdade do produto: `Especificacao_Tecnica_Calendario_Convivencia_v4.md` (versão 4.1). Backlog: `BACKLOG.md`.
 
@@ -35,6 +35,43 @@ Fases 0 a 6, prefixo `/api/v1`: auth, família, plano, calendário mensal, exce�
 - Onde guardar documentos em produção: decidir antes de hospedar arquivos de verdade. No uso local, pasta da própria máquina.
 - Backup e prazo de retenção: decidir antes de hospedar fora da máquina.
 - Papéis de quem vê e quem edita: só quando existir acesso compartilhado.
+
+## Como rodar
+
+Pré-requisitos: Java 21, Maven, Docker e Node.js. O segredo do JWT não vai no Git.
+
+### API
+
+```powershell
+docker compose up -d
+$env:JWT_SECRET = "somente-local-troque-este-segredo-jwt"
+mvn spring-boot:run
+```
+
+O Postgres local fica em `localhost:5436`, banco `anjo_guarda`, usuário e senha `anjo`. Esses valores são só desta máquina. A API sobe em http://localhost:8086. Saúde: http://localhost:8086/actuator/health.
+
+`JWT_SECRET` precisa ter pelo menos 32 caracteres. O modelo está em `.env.example`.
+
+Reset de senha, sem endpoint público:
+
+```powershell
+.\scripts\reset-senha.ps1 -Email pessoa@example.com -NewPassword "uma-senha"
+```
+
+### Testes da API
+
+`mvn test` sobe um PostgreSQL pelo Testcontainers. O Docker precisa estar acessível ao processo do Maven.
+
+### Tela
+
+```powershell
+cd frontend
+npm install
+npm test
+npm run dev
+```
+
+http://localhost:5173 encaminha `/api` para `localhost:8086`.
 
 ## Próximo
 
