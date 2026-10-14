@@ -2,8 +2,18 @@ services:
   postgres:
     image: postgres:16-alpine
     ports:
-      - "5436:5432"
+      - "127.0.0.1:5436:5432"
     environment:
       POSTGRES_DB: anjo_guarda
       POSTGRES_USER: anjo
       POSTGRES_PASSWORD: anjo
+    volumes:
+      - anjo-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U anjo -d anjo_guarda"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  anjo-postgres-data:

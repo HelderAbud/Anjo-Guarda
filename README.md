@@ -48,7 +48,7 @@ $env:JWT_SECRET = "somente-local-troque-este-segredo-jwt"
 mvn spring-boot:run
 ```
 
-O Postgres local fica em `localhost:5436`, banco `anjo_guarda`, usuário e senha `anjo`. Esses valores são só desta máquina. A API sobe em http://localhost:8086. Saúde: http://localhost:8086/actuator/health.
+O Postgres local escuta só em `127.0.0.1:5436`, banco `anjo_guarda`, usuário e senha `anjo`. Esses valores são só desta máquina. Os dados ficam no volume `anjo-postgres-data`; `docker compose down -v` apaga esse volume. A API sobe em http://localhost:8086. Saúde: http://localhost:8086/actuator/health.
 
 `JWT_SECRET` precisa ter pelo menos 32 caracteres. O modelo está em `.env.example`.
 
