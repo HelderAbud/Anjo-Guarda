@@ -1,4 +1,5 @@
 import { FormEvent, useState } from "react";
+import { DashboardPage } from "../dashboard/DashboardPage";
 
 type Session = {
   accessToken: string;
@@ -70,12 +71,14 @@ export function LoginPage() {
 
   if (session) {
     return (
-      <main className="panel">
-        <h1>Sessão iniciada</h1>
-        <button type="button" onClick={logout}>
-          Sair
-        </button>
-      </main>
+      <>
+        <DashboardPage accessToken={session.accessToken} onUnauthorized={logout} />
+        <div className="bar">
+          <button type="button" onClick={logout}>
+            Sair
+          </button>
+        </div>
+      </>
     );
   }
 
