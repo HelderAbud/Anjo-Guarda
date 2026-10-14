@@ -6,7 +6,7 @@ Fonte: spec 4.1, seções 25, 29 e 35. Cada fase só começa com aprovação. Fa
 
 Feito no alinhamento: modelo, arquitetura, lacunas 4.1, README e este backlog.
 
-Ainda sem protótipo de tela. Só entra se você pedir.
+Login e dashboard já existem. A grade do calendário ainda não.
 
 ## Fase 1 — Fundação
 
@@ -39,22 +39,22 @@ Ainda sem protótipo de tela. Só entra se você pedir.
 | ID | História | Aceite | Status |
 |---|---|---|---|
 | HIS-001 | Ver a linha do tempo de um período | Lista cronológica de exceções, confirmações, observações e auditoria | Feito |
-| AUD-001 | Consultar alterações críticas | Login, exceção, confirmação, observação, documento, importação aprovada e relatório ficam auditados | Feito (login e consulta) |
+| AUD-001 | Consultar alterações críticas | Login, exceção, confirmação, observação, documento, importação aprovada e relatório ficam auditados | Feito |
 | REP-001 | Gerar o resumo mensal | Nova geração cria nova versão; snapshot em JSON; a versão anterior não é sobrescrita | Feito |
 | REP-002 | Exportar o mês em PDF | O PDF sai do JSON da versão escolhida | Feito |
 
 ## Fase 5 — Documentos
 
-| ID | História | Aceite |
-|---|---|---|
+| ID | História | Aceite | Status |
+|---|---|---|---|
 | DOC-001 | Guardar documentos | Upload com categoria e metadados; o nome original não vira caminho no disco | Feito |
 
 Storage de produção continua em aberto. Até lá, pasta local.
 
 ## Fase 6 — Importação
 
-| ID | História | Aceite |
-|---|---|---|
+| ID | História | Aceite | Status |
+|---|---|---|---|
 | IMP-001 | Importar PDF ou DOCX | O original é guardado; nada é gravado no calendário sem confirmação | Feito |
 | IMP-002 | Resolver conflitos antes de gravar | Cada item é aprovado ou rejeitado; aprovado aponta a entidade criada ou mantida | Feito |
 
