@@ -7,16 +7,15 @@ Fonte de verdade do produto: `Especificacao_Tecnica_Calendario_Convivencia_v4.md
 ## Stack
 
 Java 21 · Spring Boot · PostgreSQL · Flyway · JWT · JUnit · Testcontainers
+Tela: React · TypeScript · Vite · Vitest
 
 ## Já implementado (API)
 
-- Auth: login, refresh, logout; reset de senha só por script local
-- Família: cadastrar criança e responsáveis (`guardian_id`)
-- Plano de convivência e regra recorrente (`SCH-001`)
-- Calendário mensal calculado em `America/Sao_Paulo` (`CAL-001` / `CAL-002`)
-- Exceção pontual por criança/data com overlay no mês e auditoria write-only (`CAL-003`)
+Fases 0 a 6, prefixo `/api/v1`: auth, família, plano, calendário mensal, exceção, confirmação, observação, busca, timeline, auditoria, relatório JSON e PDF, documentos e importação com revisão.
 
-Prefixo: `/api/v1`
+## Tela
+
+`frontend/`: login com e-mail e senha, sessão na aba e sair. Sem recuperação de senha. O Vite encaminha `/api` para `localhost:8086`.
 
 ## Decisões fechadas
 
@@ -33,10 +32,10 @@ Prefixo: `/api/v1`
 
 ## Ainda em aberto
 
-- Onde guardar documentos em produção: decidir antes da fase de documentos. No uso local, pasta da própria máquina.
+- Onde guardar documentos em produção: decidir antes de hospedar arquivos de verdade. No uso local, pasta da própria máquina.
 - Backup e prazo de retenção: decidir antes de hospedar fora da máquina.
 - Papéis de quem vê e quem edita: só quando existir acesso compartilhado.
 
 ## Próximo
 
-Fase 3 — realização e diário (`DAY-002`, `DAY-001`, `CAL-004`).
+Calendário na tela, quando você pedir.
