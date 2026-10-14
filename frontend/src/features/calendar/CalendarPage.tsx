@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { DayDetail } from "./DayDetail";
 
 const WEEKDAYS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"] as const;
 const STATUSES = ["PLANEJADO", "REALIZADO", "ALTERADO", "NAO_REALIZADO"] as const;
@@ -13,7 +14,7 @@ type Day = {
   status: string;
 };
 type Month = { days: Day[] };
-type Note = { id: string; date: string; text: string };
+type Note = { id: string; date: string; category?: string; text: string };
 
 type CalendarProps = {
   accessToken: string;
@@ -55,13 +56,6 @@ function monthTitle(year: number, month: number) {
     year: "numeric",
     timeZone: "UTC",
   }).format(new Date(Date.UTC(year, month - 1, 1)));
-}
-
-function formatDate(date: string) {
-  const [year, month, day] = date.split("-").map(Number);
-  return new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" }).format(
-    new Date(Date.UTC(year, month - 1, day)),
-  );
 }
 
 function mondayOffset(date: string) {
@@ -250,13 +244,15 @@ function CalendarContent({ accessToken, today, onUnauthorized }: CalendarProps &
         </tbody>
       </table>
       {selected ? (
-        <section aria-label="Dia selecionado">
-          <h2>{formatDate(selected.date)}</h2>
-          <p>{selected.guardianId ? names.get(selected.guardianId) ?? "Responsável" : "Sem responsável"}</p>
-          <p>{selected.status}</p>
-          {selected.exception ? <p>exceção</p> : null}
-          {notesByDate.get(selected.date) ? <p>{notesByDate.get(selected.date)?.text}</p> : null}
-        </section>
+        <DayDetail
+          key={selected.date}
+          accessToken={accessToken}
+          childId={child.id}
+          day={selected}
+          note={notesByDate.get(selected.date) ?? null}
+          guardians={child.guardians}
+          onUnauthorized={onUnauthorized}
+        />
       ) : null}
     </main>
   );
