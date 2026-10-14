@@ -1,5 +1,6 @@
 import { FormEvent, useState } from "react";
 import { DashboardPage } from "../dashboard/DashboardPage";
+import { CalendarPage } from "../calendar/CalendarPage";
 
 type Session = {
   accessToken: string;
@@ -22,6 +23,7 @@ export function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [view, setView] = useState<"painel" | "calendario">("painel");
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -66,18 +68,29 @@ export function LoginPage() {
     } finally {
       sessionStorage.removeItem(SESSION_KEY);
       setSession(null);
+      setView("painel");
     }
   }
 
   if (session) {
     return (
       <>
-        <DashboardPage accessToken={session.accessToken} onUnauthorized={logout} />
         <div className="bar">
+          <button type="button" className="ghost" onClick={() => setView("painel")}>
+            Painel
+          </button>
+          <button type="button" className="ghost" onClick={() => setView("calendario")}>
+            Calendário
+          </button>
           <button type="button" onClick={logout}>
             Sair
           </button>
         </div>
+        {view === "calendario" ? (
+          <CalendarPage accessToken={session.accessToken} onUnauthorized={logout} />
+        ) : (
+          <DashboardPage accessToken={session.accessToken} onUnauthorized={logout} />
+        )}
       </>
     );
   }
