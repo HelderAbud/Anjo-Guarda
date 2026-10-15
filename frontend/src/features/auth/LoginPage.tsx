@@ -2,6 +2,8 @@ import { FormEvent, useState } from "react";
 import { CalendarPage } from "../calendar/CalendarPage";
 import { DashboardPage } from "../dashboard/DashboardPage";
 import { CustodyPlanPage } from "../plan/CustodyPlanPage";
+import { TimelinePage } from "../timeline/TimelinePage";
+import { DocumentsPage } from "../documents/DocumentsPage";
 
 type Session = {
   accessToken: string;
@@ -24,7 +26,7 @@ export function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [view, setView] = useState<"painel" | "calendario" | "plano">("painel");
+  const [view, setView] = useState<"painel" | "calendario" | "plano" | "historico" | "documentos">("painel");
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -86,6 +88,12 @@ export function LoginPage() {
           <button type="button" className="ghost" onClick={() => setView("plano")}>
             Plano
           </button>
+          <button type="button" className="ghost" onClick={() => setView("historico")}>
+            Histórico
+          </button>
+          <button type="button" className="ghost" onClick={() => setView("documentos")}>
+            Documentos
+          </button>
           <button type="button" onClick={logout}>
             Sair
           </button>
@@ -94,6 +102,10 @@ export function LoginPage() {
           <CalendarPage accessToken={session.accessToken} onUnauthorized={logout} />
         ) : view === "plano" ? (
           <CustodyPlanPage accessToken={session.accessToken} onUnauthorized={logout} />
+        ) : view === "historico" ? (
+          <TimelinePage accessToken={session.accessToken} onUnauthorized={logout} />
+        ) : view === "documentos" ? (
+          <DocumentsPage accessToken={session.accessToken} onUnauthorized={logout} />
         ) : (
           <DashboardPage accessToken={session.accessToken} onUnauthorized={logout} />
         )}

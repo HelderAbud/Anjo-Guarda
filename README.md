@@ -15,7 +15,7 @@ Fases 0 a 6, prefixo `/api/v1`: auth, família, plano, calendário mensal, exce�
 
 ## Tela
 
-`frontend/`: login, painel, grade do calendário, detalhe do dia e plano de convivência. O plano ativo é só leitura. Sem anexo no dia e sem exceção nesta tela. O Vite encaminha `/api` para `localhost:8086`.
+`frontend/`: login, painel, grade do calendário, detalhe do dia, plano, linha do tempo e documentos. O plano ativo é só leitura. Sem anexo no dia, sem exceção no plano, sem documento na linha do tempo e sem apagar documento. O Vite encaminha `/api` para `localhost:8086`.
 
 ## Decisões fechadas
 
@@ -75,4 +75,4 @@ http://localhost:5173 encaminha `/api` para `localhost:8086`.
 
 ## Próximo
 
-Linha do tempo na tela, quando você pedir.
+Importação na tela, quando você pedir.
