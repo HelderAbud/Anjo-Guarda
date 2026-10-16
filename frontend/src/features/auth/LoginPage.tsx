@@ -5,6 +5,7 @@ import { CustodyPlanPage } from "../plan/CustodyPlanPage";
 import { TimelinePage } from "../timeline/TimelinePage";
 import { DocumentsPage } from "../documents/DocumentsPage";
 import { ImportPage } from "../imports/ImportPage";
+import { ReportsPage } from "../reports/ReportsPage";
 
 type Session = {
   accessToken: string;
@@ -27,9 +28,9 @@ export function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [view, setView] = useState<"painel" | "calendario" | "plano" | "historico" | "documentos" | "importacao">(
-    "painel",
-  );
+  const [view, setView] = useState<
+    "painel" | "calendario" | "plano" | "historico" | "documentos" | "importacao" | "relatorios"
+  >("painel");
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -100,6 +101,9 @@ export function LoginPage() {
           <button type="button" className="ghost" onClick={() => setView("importacao")}>
             Importação
           </button>
+          <button type="button" className="ghost" onClick={() => setView("relatorios")}>
+            Relatórios
+          </button>
           <button type="button" onClick={logout}>
             Sair
           </button>
@@ -114,6 +118,8 @@ export function LoginPage() {
           <DocumentsPage accessToken={session.accessToken} onUnauthorized={logout} />
         ) : view === "importacao" ? (
           <ImportPage accessToken={session.accessToken} onUnauthorized={logout} />
+        ) : view === "relatorios" ? (
+          <ReportsPage accessToken={session.accessToken} onUnauthorized={logout} />
         ) : (
           <DashboardPage accessToken={session.accessToken} onUnauthorized={logout} />
         )}
