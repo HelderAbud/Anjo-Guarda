@@ -55,8 +55,10 @@ O Postgres local escuta só em `127.0.0.1:5436`, banco `anjo_guarda`, usuário e
 Reset de senha, sem endpoint público:
 
 ```powershell
-.\scripts\reset-senha.ps1 -Email pessoa@example.com -NewPassword "uma-senha"
+.\scripts\reset-senha.ps1 -Email pessoa@example.com
 ```
+
+O script pede a senha, ou usa `ANJO_NEW_PASSWORD` se essa variável já existir. A senha não entra no comando do Maven.
 
 ### Testes da API
 

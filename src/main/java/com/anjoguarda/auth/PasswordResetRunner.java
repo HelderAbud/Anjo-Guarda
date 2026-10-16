@@ -19,9 +19,15 @@ public class PasswordResetRunner implements ApplicationRunner {
             return;
         }
         String email = required(args, "email");
-        String newPassword = required(args, "new-password");
-        passwordResetService.reset(email, newPassword);
+        passwordResetService.reset(email, passwordFrom(System.getenv("ANJO_NEW_PASSWORD")));
         System.exit(0);
+    }
+
+    static String passwordFrom(String fromEnv) {
+        if (fromEnv == null || fromEnv.isBlank()) {
+            throw new IllegalArgumentException("Defina ANJO_NEW_PASSWORD");
+        }
+        return fromEnv;
     }
 
     private static String required(ApplicationArguments args, String name) {

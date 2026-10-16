@@ -60,8 +60,8 @@ public class MonthCalendarService {
         requireChild(userId, childId);
         YearMonth yearMonth = yearMonth(year, month);
         ActiveRule rule = activeRule(childId);
-        LocalDate date = yearMonth.atDay(1).atStartOfDay(BrazilTime.ZONE).toLocalDate();
-        LocalDate limit = yearMonth.plusMonths(1).atDay(1).atStartOfDay(BrazilTime.ZONE).toLocalDate();
+        LocalDate date = yearMonth.atDay(1);
+        LocalDate limit = yearMonth.plusMonths(1).atDay(1);
         LocalDate last = limit.minusDays(1);
         Map<LocalDate, UUID> overrides = exceptionsByDate(childId, date, last);
         Map<LocalDate, CalendarConfirmation> confirmed = confirmationsByDate(childId, date, last);
