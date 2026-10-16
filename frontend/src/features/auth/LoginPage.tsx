@@ -6,6 +6,7 @@ import { TimelinePage } from "../timeline/TimelinePage";
 import { DocumentsPage } from "../documents/DocumentsPage";
 import { ImportPage } from "../imports/ImportPage";
 import { ReportsPage } from "../reports/ReportsPage";
+import { AuditPage } from "../audit/AuditPage";
 
 type Session = {
   accessToken: string;
@@ -29,7 +30,7 @@ export function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [view, setView] = useState<
-    "painel" | "calendario" | "plano" | "historico" | "documentos" | "importacao" | "relatorios"
+    "painel" | "calendario" | "plano" | "historico" | "documentos" | "importacao" | "relatorios" | "auditoria"
   >("painel");
 
   async function onSubmit(event: FormEvent) {
@@ -104,6 +105,9 @@ export function LoginPage() {
           <button type="button" className="ghost" onClick={() => setView("relatorios")}>
             Relatórios
           </button>
+          <button type="button" className="ghost" onClick={() => setView("auditoria")}>
+            Auditoria
+          </button>
           <button type="button" onClick={logout}>
             Sair
           </button>
@@ -120,6 +124,8 @@ export function LoginPage() {
           <ImportPage accessToken={session.accessToken} onUnauthorized={logout} />
         ) : view === "relatorios" ? (
           <ReportsPage accessToken={session.accessToken} onUnauthorized={logout} />
+        ) : view === "auditoria" ? (
+          <AuditPage accessToken={session.accessToken} onUnauthorized={logout} />
         ) : (
           <DashboardPage accessToken={session.accessToken} onUnauthorized={logout} />
         )}
