@@ -11,6 +11,7 @@ import java.util.Base64;
 import java.util.HexFormat;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +22,7 @@ public class LoginService {
 
     private static final String ACTIVE = "ACTIVE";
     private static final long REFRESH_TTL_SECONDS = 60L * 60L * 24L * 14L;
+    static final String ABSENT_PASSWORD_HASH = new BCryptPasswordEncoder().encode("usuario-ausente");
 
     private final UserAccountRepository users;
     private final RefreshTokenRepository refreshTokens;
@@ -44,10 +46,14 @@ public class LoginService {
 
     @Transactional
     public LoginResponse login(String email, String password) {
-        UserAccount user = users.findByEmail(email)
-                .filter(account -> ACTIVE.equals(account.getStatus()))
-                .filter(account -> passwordEncoder.matches(password, account.getPasswordHash()))
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciais inválidas"));
+        UserAccount user = users.findByEmail(email.trim()).orElse(null);
+        if (user == null || !ACTIVE.equals(user.getStatus())) {
+            passwordEncoder.matches(password, ABSENT_PASSWORD_HASH);
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciais inválidas");
+        }
+        if (!passwordEncoder.matches(password, user.getPasswordHash())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciais inválidas");
+        }
 
         Instant now = Instant.now();
         String refreshToken = newRefreshToken();

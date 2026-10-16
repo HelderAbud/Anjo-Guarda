@@ -11,6 +11,7 @@ import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
 import org.apache.poi.xwpf.usermodel.XWPFTableCell;
+import org.apache.poi.openxml4j.util.ZipSecureFile;
 import org.apache.poi.xwpf.usermodel.XWPFTableRow;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
@@ -19,6 +20,8 @@ final class ImportText {
 
     static final String PDF = "application/pdf";
     static final String DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    private static final int MAX_PDF_PAGES = 100;
+    private static final long MAX_DOCX_ENTRY_BYTES = 20L * 1024 * 1024;
 
     private ImportText() {}
 
@@ -45,11 +48,15 @@ final class ImportText {
 
     private static String pdf(byte[] bytes) throws IOException {
         try (PDDocument document = Loader.loadPDF(bytes)) {
+            if (document.getNumberOfPages() > MAX_PDF_PAGES) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "PDF acima de 100 páginas");
+            }
             return new PDFTextStripper().getText(document);
         }
     }
 
     private static String docx(byte[] bytes) throws IOException {
+        ZipSecureFile.setMaxEntrySize(MAX_DOCX_ENTRY_BYTES);
         StringBuilder out = new StringBuilder();
         try (XWPFDocument document = new XWPFDocument(new ByteArrayInputStream(bytes))) {
             for (IBodyElement element : document.getBodyElements()) {

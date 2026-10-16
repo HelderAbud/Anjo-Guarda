@@ -20,3 +20,5 @@ documentos/
 imports-originais/
 *.pdf
 *.docx
+
+.code-review-graph/
