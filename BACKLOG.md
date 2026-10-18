@@ -6,8 +6,6 @@ Fonte: spec 4.1, seções 25, 29 e 35. Cada fase só começa com aprovação. Fa
 
 Feito no alinhamento: modelo, arquitetura, lacunas 4.1, README e este backlog.
 
-Login e dashboard já existem. A grade do calendário ainda não.
-
 ## Fase 1 — Fundação
 
 | ID | História | Aceite | Status |
