@@ -22,3 +22,4 @@ imports-originais/
 *.docx
 
 .code-review-graph/
+backups/
