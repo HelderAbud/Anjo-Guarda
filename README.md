@@ -33,7 +33,7 @@ Fases 0 a 6, prefixo `/api/v1`: auth, família, plano, calendário mensal, exce�
 ## Ainda em aberto
 
 - Onde guardar documentos em produção: decidir antes de hospedar arquivos de verdade. No uso local, pasta da própria máquina.
-- Backup e prazo de retenção: decidir antes de hospedar fora da máquina.
+- Backup e prazo de retenção: a cópia manual local está em `scripts/backup-local.ps1`. Periodicidade, prazo e envio para fora da máquina continuam em aberto.
 - Papéis de quem vê e quem edita: só quando existir acesso compartilhado.
 
 ## Como rodar
@@ -60,6 +60,22 @@ Reset de senha, sem endpoint público:
 
 O script pede a senha, ou usa `ANJO_NEW_PASSWORD` se essa variável já existir. A senha não entra no comando do Maven.
 
+### Backup local
+
+```powershell
+.\scripts\backup-local.ps1
+```
+
+Cria `backups/aaaaMMdd-HHmmss` com o dump do banco e, se existirem, as pastas `documentos` e `imports-originais`. A pasta fica fora do Git. O script não apaga cópias antigas e não envia nada para fora. Para recolocar essa cópia no Postgres do compose, com ele no ar:
+
+```powershell
+docker compose cp .\backups\<pasta>\anjo_guarda.sql postgres:/tmp/anjo_guarda.sql
+docker compose exec -T postgres psql -U anjo -d anjo_guarda -f /tmp/anjo_guarda.sql
+docker compose exec -T postgres rm -f /tmp/anjo_guarda.sql
+```
+
+O dump apaga e recria os objetos do banco. Não há restauração automática.
+
 ### Testes da API
 
 `mvn test` sobe um PostgreSQL pelo Testcontainers. O Docker precisa estar acessível ao processo do Maven.
@@ -77,4 +93,4 @@ http://localhost:5173 encaminha `/api` para `localhost:8086`.
 
 ## Próximo
 
-Backup e retenção seguem em aberto.
+Hospedar fora da máquina só depois de decidir o prazo de retenção e onde ficam os arquivos.
