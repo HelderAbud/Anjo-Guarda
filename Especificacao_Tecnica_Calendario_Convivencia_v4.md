@@ -995,12 +995,17 @@ reabertas sem necessidade):
     plataforma, personas e marca ficam registradas como ideias futuras
     (seção 30), não desenvolvidas agora.
 
+Decisões fechadas para hospedar os arquivos
+
+-   Documentos e originais de importação vão para storage S3-compatível
+    quando isso estiver configurado. Sem essa configuração, continuam
+    nas pastas locais. A chave nova é ano/mês/id com a extensão real
+    do arquivo. A chave antiga continua abrindo.
+
+-   Backup diário às 02:00, 30 cópias diárias e 12 mensais. O script
+    remoto ainda não existe. O script local não apaga cópia antiga.
+
 Decisões ainda em aberto
-
--   Onde os arquivos (documentos e originais de importação) serão
-    armazenados em produção.
-
--   Política concreta de backup e retenção (periodicidade, prazo).
 
 -   Papéis/permissões exatos em family_access quando o acesso
     compartilhado for ativado (ex: visualizador vs. editor).

@@ -11,6 +11,8 @@ import com.anjoguarda.calendar.CreateCalendarExceptionRequest;
 import com.anjoguarda.calendar.CreateConfirmationRequest;
 import com.anjoguarda.family.ChildRepository;
 import com.anjoguarda.family.FamilyAccessRepository;
+import com.anjoguarda.storage.BlobStore;
+import com.anjoguarda.storage.StorageKeys;
 import com.anjoguarda.imports.ApproveImportRequest.ItemDecision;
 import com.anjoguarda.notes.CreateNoteRequest;
 import com.anjoguarda.notes.DailyNote;
@@ -29,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,7 +47,7 @@ public class ImportService {
     private final FamilyAccessRepository access;
     private final StoredImportRepository imports;
     private final ImportItemRepository items;
-    private final ImportFiles files;
+    private final BlobStore files;
     private final NoteService notes;
     private final DailyNoteRepository noteRows;
     private final ConfirmationService confirmations;
@@ -59,7 +62,7 @@ public class ImportService {
             FamilyAccessRepository access,
             StoredImportRepository imports,
             ImportItemRepository items,
-            ImportFiles files,
+            @Qualifier("importStore") BlobStore files,
             NoteService notes,
             DailyNoteRepository noteRows,
             ConfirmationService confirmations,
@@ -90,11 +93,12 @@ public class ImportService {
         byte[] bytes = bytes(file);
         String sourceType = ImportText.sourceType(file.getContentType(), bytes);
         String extracted = ImportText.extract(sourceType, bytes);
-        String storageKey = UUID.randomUUID() + extension(sourceType);
+        UUID id = UUID.randomUUID();
+        String storageKey = StorageKeys.key(Instant.now(), id, extension(sourceType));
         files.write(storageKey, bytes);
         try {
             StoredImport stored = imports.save(new StoredImport(
-                    UUID.randomUUID(), childId, filename, storageKey, sourceType, extracted, Instant.now()));
+                    id, childId, filename, storageKey, sourceType, extracted, Instant.now()));
             List<ImportItem> parsed = saveItems(stored.getId(), extracted);
             return toResponse(stored, parsed);
         } catch (RuntimeException error) {
