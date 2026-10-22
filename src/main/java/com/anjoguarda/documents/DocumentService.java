@@ -4,13 +4,17 @@ import com.anjoguarda.audit.AuditLog;
 import com.anjoguarda.audit.AuditLogRepository;
 import com.anjoguarda.family.ChildRepository;
 import com.anjoguarda.family.FamilyAccessRepository;
+import com.anjoguarda.storage.BlobStore;
+import com.anjoguarda.storage.StorageKeys;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +32,7 @@ public class DocumentService {
     private final FamilyAccessRepository access;
     private final StoredDocumentRepository documents;
     private final AuditLogRepository audits;
-    private final DocumentFiles files;
+    private final BlobStore files;
     private final ObjectMapper objectMapper;
 
     public DocumentService(
@@ -36,7 +40,7 @@ public class DocumentService {
             FamilyAccessRepository access,
             StoredDocumentRepository documents,
             AuditLogRepository audits,
-            DocumentFiles files,
+            @Qualifier("documentStore") BlobStore files,
             ObjectMapper objectMapper) {
         this.children = children;
         this.access = access;
@@ -53,11 +57,12 @@ public class DocumentService {
         String filename = filename(file == null ? null : file.getOriginalFilename());
         byte[] bytes = bytes(file);
         String mimeType = mimeType(file, bytes);
-        String storageKey = UUID.randomUUID() + extension(mimeType);
+        UUID id = UUID.randomUUID();
+        String storageKey = StorageKeys.key(Instant.now(), id, extension(mimeType));
         files.write(storageKey, bytes);
         try {
             StoredDocument document = documents.save(new StoredDocument(
-                    UUID.randomUUID(),
+                    id,
                     childId,
                     storedCategory,
                     filename,

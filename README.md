@@ -32,9 +32,9 @@ Fases 0 a 6, prefixo `/api/v1`: auth, família, plano, calendário mensal, exce�
 
 ## Ainda em aberto
 
-- Onde guardar documentos em produção: decidir antes de hospedar arquivos de verdade. No uso local, pasta da própria máquina.
-- Backup e prazo de retenção: a cópia manual local está em `scripts/backup-local.ps1`. Periodicidade, prazo e envio para fora da máquina continuam em aberto.
 - Papéis de quem vê e quem edita: só quando existir acesso compartilhado.
+- Onde a API, o Postgres e a tela sobem fora desta máquina.
+- `scripts/backup-s3.ps1`: diário às 02:00, 30 cópias diárias e 12 mensais. Até essa fatia, vale `scripts/backup-local.ps1`.
 
 ## Como rodar
 
@@ -66,7 +66,7 @@ O script pede a senha, ou usa `ANJO_NEW_PASSWORD` se essa variável já existir.
 .\scripts\backup-local.ps1
 ```
 
-Cria `backups/aaaaMMdd-HHmmss` com o dump do banco e, se existirem, as pastas `documentos` e `imports-originais`. A pasta fica fora do Git. O script não apaga cópias antigas e não envia nada para fora. Para recolocar essa cópia no Postgres do compose, com ele no ar:
+Cria `backups/aaaaMMdd-HHmmss` com o dump do banco e, se existirem, as pastas `documentos` e `imports-originais`. A pasta fica fora do Git. O script não apaga cópias antigas e não envia nada para fora. O prazo fechado é diário às 02:00, com 30 diários e 12 mensais; este script ainda não aplica esse prazo. Para recolocar essa cópia no Postgres do compose, com ele no ar:
 
 ```powershell
 docker compose cp .\backups\<pasta>\anjo_guarda.sql postgres:/tmp/anjo_guarda.sql
@@ -93,4 +93,4 @@ http://localhost:5173 encaminha `/api` para `localhost:8086`.
 
 ## Próximo
 
-Hospedar fora da máquina só depois de decidir o prazo de retenção e onde ficam os arquivos.
+Nomear onde a API sobe. O backup remoto, com o prazo já decidido, fica para a fatia seguinte.

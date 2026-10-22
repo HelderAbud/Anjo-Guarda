@@ -20,10 +20,17 @@ spring:
       max-request-size: 10MB
 
 anjo:
+  storage: ${ANJO_STORAGE:local}
   documents:
     dir: documentos
   imports:
     dir: imports-originais
+  s3:
+    endpoint: ${S3_ENDPOINT:}
+    bucket: ${S3_BUCKET:}
+    region: ${S3_REGION:}
+    access-key: ${S3_ACCESS_KEY:}
+    secret-key: ${S3_SECRET_KEY:}
 
 app:
   jwt:

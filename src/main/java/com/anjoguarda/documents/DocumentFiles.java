@@ -1,54 +1,35 @@
 package com.anjoguarda.documents;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import com.anjoguarda.storage.BlobStore;
+import com.anjoguarda.storage.LocalBlobStore;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
-import org.springframework.web.server.ResponseStatusException;
 
 @Component
-public class DocumentFiles {
+@ConditionalOnProperty(name = "anjo.storage", havingValue = "local", matchIfMissing = true)
+@Qualifier("documentStore")
+public class DocumentFiles implements BlobStore {
 
-    private final Path root;
+    private final LocalBlobStore store;
 
     public DocumentFiles(@Value("${anjo.documents.dir:documentos}") String dir) {
-        this.root = Path.of(dir).toAbsolutePath().normalize();
+        this.store = new LocalBlobStore(dir, "Documento não encontrado");
     }
 
+    @Override
     public void write(String storageKey, byte[] bytes) {
-        Path path = resolve(storageKey);
-        try {
-            Files.createDirectories(root);
-            Files.write(path, bytes);
-        } catch (IOException error) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Arquivo inválido");
-        }
+        store.write(storageKey, bytes);
     }
 
+    @Override
     public byte[] read(String storageKey) {
-        Path path = resolve(storageKey);
-        try {
-            return Files.readAllBytes(path);
-        } catch (IOException error) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Documento não encontrado");
-        }
+        return store.read(storageKey);
     }
 
+    @Override
     public void delete(String storageKey) {
-        try {
-            Files.deleteIfExists(resolve(storageKey));
-        } catch (IOException error) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Arquivo inválido");
-        }
-    }
-
-    private Path resolve(String storageKey) {
-        Path path = root.resolve(storageKey).normalize();
-        if (!path.startsWith(root)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Arquivo inválido");
-        }
-        return path;
+        store.delete(storageKey);
     }
 }

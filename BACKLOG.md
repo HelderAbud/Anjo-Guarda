@@ -47,7 +47,7 @@ Feito no alinhamento: modelo, arquitetura, lacunas 4.1, README e este backlog.
 |---|---|---|---|
 | DOC-001 | Guardar documentos | Upload com categoria e metadados; o nome original não vira caminho no disco | Feito |
 
-Storage de produção continua em aberto. Até lá, pasta local.
+Storage de produção: S3-compatível, com pasta local quando não houver configuração. A chave nova é ano/mês/id e a extensão real. A chave antiga continua abrindo.
 
 ## Fase 6 — Importação
 
@@ -55,6 +55,12 @@ Storage de produção continua em aberto. Até lá, pasta local.
 |---|---|---|---|
 | IMP-001 | Importar PDF ou DOCX | O original é guardado; nada é gravado no calendário sem confirmação | Feito |
 | IMP-002 | Resolver conflitos antes de gravar | Cada item é aprovado ou rejeitado; aprovado aponta a entidade criada ou mantida | Feito |
+
+## A1-05 — Hospedagem dos arquivos
+
+| ID | História | Aceite | Status |
+|---|---|---|---|
+| A1-05 | Gravar arquivo novo fora da pasta local | Chave ano/mês/id com a extensão real; S3-compatível quando configurado; sem configuração, pasta local; chave antiga continua abrindo | Feito |
 
 ## Fora da primeira versão
 
