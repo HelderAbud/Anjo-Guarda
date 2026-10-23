@@ -1003,7 +1003,8 @@ Decisões fechadas para hospedar os arquivos
     do arquivo. A chave antiga continua abrindo.
 
 -   Backup diário às 02:00, 30 cópias diárias e 12 mensais. O script
-    remoto ainda não existe. O script local não apaga cópia antiga.
+    remoto envia a cópia e aplica esse prazo. A tarefa das 02:00 não é
+    criada pelo script. O script local não apaga cópia antiga.
 
 Decisões ainda em aberto
 
