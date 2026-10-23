@@ -34,7 +34,6 @@ Fases 0 a 6, prefixo `/api/v1`: auth, família, plano, calendário mensal, exce�
 
 - Papéis de quem vê e quem edita: só quando existir acesso compartilhado.
 - Onde a API, o Postgres e a tela sobem fora desta máquina.
-- `scripts/backup-s3.ps1`: diário às 02:00, 30 cópias diárias e 12 mensais. Até essa fatia, vale `scripts/backup-local.ps1`.
 
 ## Como rodar
 
@@ -76,6 +75,20 @@ docker compose exec -T postgres rm -f /tmp/anjo_guarda.sql
 
 O dump apaga e recria os objetos do banco. Não há restauração automática.
 
+### Backup remoto
+
+```powershell
+.\scripts\backup-s3.ps1
+```
+
+Envia o dump e, se existirem, `documentos` e `imports-originais` para `backups/daily/aaaaMMdd-HHmmss` no bucket. A primeira cópia de cada mês também fica em `backups/monthly/aaaaMM`. O script guarda 30 diárias e 12 mensais, e só apaga pastas com esse nome, dentro desses prefixos. A hora é America/Sao_Paulo. Ele não cria a tarefa das 02:00. Para agendar nesta máquina:
+
+```powershell
+schtasks /Create /TN "Anjo-Guarda backup" /SC DAILY /ST 02:00 /TR "powershell -NoProfile -File \"C:\caminho\scripts\backup-s3.ps1\""
+```
+
+As variáveis `S3_ENDPOINT`, `S3_BUCKET`, `S3_REGION`, `S3_ACCESS_KEY` e `S3_SECRET_KEY` vêm do ambiente ou de um `.env` local, que fica fora do Git. O endpoint precisa ser `https`. Também precisa do Docker e da AWS CLI. Se o envio falhar, a pasta temporária fica na máquina e o script mostra o caminho.
+
 ### Testes da API
 
 `mvn test` sobe um PostgreSQL pelo Testcontainers. O Docker precisa estar acessível ao processo do Maven.
@@ -93,4 +106,4 @@ http://localhost:5173 encaminha `/api` para `localhost:8086`.
 
 ## Próximo
 
-Nomear onde a API sobe. O backup remoto, com o prazo já decidido, fica para a fatia seguinte.
+Nomear onde a API sobe.

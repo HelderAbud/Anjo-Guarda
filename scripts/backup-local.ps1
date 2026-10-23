@@ -34,8 +34,8 @@ foreach ($dir in @('documentos', 'imports-originais')) {
 
 @(
     'Cópia local. Fica nesta máquina.'
-    'Nada é apagado daqui.'
-    'Periodicidade e prazo de retenção continuam em aberto.'
+    'Nada é apagado daqui e nada é enviado para fora.'
+    'O prazo de 30 diários e 12 mensais fica no script remoto.'
 ) | Set-Content -Path (Join-Path $dest 'LEIA.txt') -Encoding utf8
 
 Write-Output $dest
