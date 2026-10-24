@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { CalendarPage } from "../calendar/CalendarPage";
 import { DashboardPage } from "../dashboard/DashboardPage";
 import { CustodyPlanPage } from "../plan/CustodyPlanPage";
@@ -8,31 +8,18 @@ import { ImportPage } from "../imports/ImportPage";
 import { ReportsPage } from "../reports/ReportsPage";
 import { AuditPage } from "../audit/AuditPage";
 import { SettingsPage } from "../settings/SettingsPage";
-
-type Session = {
-  accessToken: string;
-  refreshToken: string;
-  expiresInSeconds: number;
-};
-
-const SESSION_KEY = "anjo.session";
-
-function loadSession(): Session | null {
-  const raw = sessionStorage.getItem(SESSION_KEY);
-  if (!raw) {
-    return null;
-  }
-  return JSON.parse(raw) as Session;
-}
+import { readSession, subscribeSession, writeSession, type Session } from "./session";
 
 export function LoginPage() {
-  const [session, setSession] = useState<Session | null>(() => loadSession());
+  const [session, setSession] = useState<Session | null>(() => readSession());
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [view, setView] = useState<
     "painel" | "calendario" | "plano" | "historico" | "documentos" | "importacao" | "relatorios" | "auditoria" | "configuracoes"
   >("painel");
+
+  useEffect(() => subscribeSession(setSession), []);
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -57,8 +44,7 @@ export function LoginPage() {
         return;
       }
       const next = (await response.json()) as Session;
-      sessionStorage.setItem(SESSION_KEY, JSON.stringify(next));
-      setSession(next);
+      writeSession(next);
       setPassword("");
     } catch {
       setError("Não foi possível entrar. Tente de novo.");
@@ -66,17 +52,17 @@ export function LoginPage() {
   }
 
   async function logout() {
+    const current = readSession();
     try {
-      if (session) {
+      if (current) {
         await fetch("/api/v1/auth/logout", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ refreshToken: session.refreshToken }),
+          body: JSON.stringify({ refreshToken: current.refreshToken }),
         });
       }
     } finally {
-      sessionStorage.removeItem(SESSION_KEY);
-      setSession(null);
+      writeSession(null);
       setView("painel");
     }
   }

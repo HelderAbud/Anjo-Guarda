@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { authorizedFetch } from "../auth/session";
 
 type Guardian = { id: string; name: string };
 type Child = { id: string; name: string; guardians: Guardian[] };
@@ -65,7 +66,7 @@ function brazilToday() {
 }
 
 async function getJson<T>(path: string, accessToken: string, onUnauthorized?: () => void): Promise<T> {
-  const response = await fetch(path, { headers: { Authorization: `Bearer ${accessToken}` } });
+  const response = await authorizedFetch(path, { headers: { Authorization: `Bearer ${accessToken}` } });
   if (response.status === 401) {
     onUnauthorized?.();
     throw new Error("Sessão expirada");
@@ -173,7 +174,7 @@ function ReportsContent({ accessToken, today = brazilToday(), onUnauthorized }: 
       month: String(month),
     });
     try {
-      const response = await fetch(`/api/v1/reports/monthly?${params.toString()}`, {
+      const response = await authorizedFetch(`/api/v1/reports/monthly?${params.toString()}`, {
         method: "POST",
         headers: { Authorization: `Bearer ${accessToken}` },
       });
@@ -195,7 +196,7 @@ function ReportsContent({ accessToken, today = brazilToday(), onUnauthorized }: 
   async function openVersion(id: string) {
     setError("");
     try {
-      const response = await fetch(`/api/v1/reports/monthly/${id}`, {
+      const response = await authorizedFetch(`/api/v1/reports/monthly/${id}`, {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       if (response.status === 401) {
@@ -218,7 +219,7 @@ function ReportsContent({ accessToken, today = brazilToday(), onUnauthorized }: 
     }
     setError("");
     try {
-      const response = await fetch(`/api/v1/reports/monthly/${current.id}/pdf`, {
+      const response = await authorizedFetch(`/api/v1/reports/monthly/${current.id}/pdf`, {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       if (response.status === 401) {

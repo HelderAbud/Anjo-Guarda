@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FormEvent, useState } from "react";
+import { authorizedFetch } from "../auth/session";
 
 type Child = { id: string; name: string };
 type DocumentItem = {
@@ -17,7 +18,7 @@ type DocumentsProps = {
 };
 
 async function getJson<T>(path: string, accessToken: string, onUnauthorized?: () => void): Promise<T> {
-  const response = await fetch(path, { headers: { Authorization: `Bearer ${accessToken}` } });
+  const response = await authorizedFetch(path, { headers: { Authorization: `Bearer ${accessToken}` } });
   if (response.status === 401) {
     onUnauthorized?.();
     throw new Error("Sessão expirada");
@@ -158,7 +159,7 @@ function UploadForm({
     body.set("category", trimmed);
     body.set("file", file);
     try {
-      const response = await fetch("/api/v1/documents", {
+      const response = await authorizedFetch("/api/v1/documents", {
         method: "POST",
         headers: { Authorization: `Bearer ${accessToken}` },
         body,
@@ -201,7 +202,7 @@ function UploadForm({
 }
 
 async function download(item: DocumentItem, accessToken: string, onUnauthorized?: () => void) {
-  const response = await fetch(`/api/v1/documents/${item.id}/download`, {
+  const response = await authorizedFetch(`/api/v1/documents/${item.id}/download`, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
   if (response.status === 401) {

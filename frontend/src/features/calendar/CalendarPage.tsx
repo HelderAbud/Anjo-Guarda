@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
+import { authorizedFetch } from "../auth/session";
 import { useState } from "react";
 import { DayDetail } from "./DayDetail";
 
@@ -23,7 +24,7 @@ type CalendarProps = {
 };
 
 async function getJson<T>(path: string, accessToken: string, onUnauthorized?: () => void): Promise<T> {
-  const response = await fetch(path, {
+  const response = await authorizedFetch(path, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
   if (response.status === 401) {

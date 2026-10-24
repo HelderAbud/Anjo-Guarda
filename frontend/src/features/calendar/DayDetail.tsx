@@ -1,5 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { authorizedFetch } from "../auth/session";
 
 const CATEGORIES = ["ROTINA", "ESCOLA", "ATIVIDADE", "SAUDE", "VIAGEM", "TROCA_DE_HORARIO", "OUTRO"] as const;
 
@@ -56,7 +57,7 @@ export function DayDetail({ accessToken, childId, day, note, guardians, onUnauth
   const [error, setError] = useState("");
 
   async function send(path: string, method: string, body?: unknown) {
-    const response = await fetch(path, {
+    const response = await authorizedFetch(path, {
       method,
       headers: {
         Authorization: `Bearer ${accessToken}`,

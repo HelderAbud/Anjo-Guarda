@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, expect, test, vi } from "vitest";
 import { LoginPage } from "./LoginPage";
@@ -104,4 +104,55 @@ test("stores the session and can leave it", async () => {
     "/api/v1/auth/logout",
     expect.objectContaining({ method: "POST" }),
   );
+});
+
+test("stays in when the access token expires", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url: string, init?: RequestInit) => {
+      const path = String(url);
+      if (path.endsWith("/login")) {
+        return {
+          ok: true,
+          json: async () => ({
+            accessToken: "access-1",
+            refreshToken: "refresh-1",
+            expiresInSeconds: 900,
+          }),
+        };
+      }
+      if (path.endsWith("/auth/refresh")) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            accessToken: "access-2",
+            refreshToken: "refresh-2",
+            expiresInSeconds: 900,
+          }),
+        };
+      }
+      if (path === "/api/v1/children") {
+        const authorization = new Headers(init?.headers).get("Authorization");
+        if (authorization === "Bearer access-2") {
+          return { ok: true, status: 200, json: async () => [] };
+        }
+        return { ok: false, status: 401, json: async () => ({}) };
+      }
+      return { ok: true, status: 200, json: async () => ({ days: [] }) };
+    }),
+  );
+  const user = userEvent.setup();
+  render(<LoginPage />);
+  await user.type(screen.getByLabelText("E-mail"), "ana@example.com");
+  await user.type(screen.getByLabelText("Senha"), "senha-certa");
+  await user.click(screen.getByRole("button", { name: "Entrar" }));
+
+  expect(await screen.findByRole("button", { name: "Sair" })).toBeTruthy();
+  await waitFor(() => {
+    expect(JSON.parse(sessionStorage.getItem("anjo.session") ?? "{}")).toMatchObject({
+      accessToken: "access-2",
+      refreshToken: "refresh-2",
+    });
+  });
 });

@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { authorizedFetch } from "../auth/session";
 
 type Guardian = { id: string; name: string };
 type Child = { id: string; name: string; guardians: Guardian[] };
@@ -54,7 +55,7 @@ function labelOf(type: string) {
 }
 
 async function getJson<T>(path: string, accessToken: string, onUnauthorized?: () => void): Promise<T> {
-  const response = await fetch(path, { headers: { Authorization: `Bearer ${accessToken}` } });
+  const response = await authorizedFetch(path, { headers: { Authorization: `Bearer ${accessToken}` } });
   if (response.status === 401) {
     onUnauthorized?.();
     throw new Error("Sessão expirada");
