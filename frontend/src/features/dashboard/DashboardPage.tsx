@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { authorizedFetch } from "../auth/session";
 
 const STATUSES = ["PLANEJADO", "REALIZADO", "ALTERADO", "NAO_REALIZADO"] as const;
 
@@ -16,7 +17,7 @@ type DashboardProps = {
 };
 
 async function getJson<T>(path: string, accessToken: string, onUnauthorized?: () => void): Promise<T> {
-  const response = await fetch(path, {
+  const response = await authorizedFetch(path, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
   if (response.status === 401) {

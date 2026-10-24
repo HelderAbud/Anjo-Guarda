@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FormEvent, useState } from "react";
+import { authorizedFetch } from "../auth/session";
 
 type Guardian = { id: string; name: string };
 type Child = { id: string; name: string; guardians: Guardian[] };
@@ -78,7 +79,7 @@ function brazilToday() {
 }
 
 async function getJson<T>(path: string, accessToken: string, onUnauthorized?: () => void): Promise<T> {
-  const response = await fetch(path, { headers: { Authorization: `Bearer ${accessToken}` } });
+  const response = await authorizedFetch(path, { headers: { Authorization: `Bearer ${accessToken}` } });
   if (response.status === 401) {
     onUnauthorized?.();
     throw new Error("Sessão expirada");
@@ -90,7 +91,7 @@ async function getJson<T>(path: string, accessToken: string, onUnauthorized?: ()
 }
 
 async function loadPlan(childId: string, accessToken: string, onUnauthorized?: () => void): Promise<Plan | null> {
-  const response = await fetch(`/api/v1/children/${childId}/custody-plan`, {
+  const response = await authorizedFetch(`/api/v1/children/${childId}/custody-plan`, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
   if (response.status === 401) {
@@ -242,7 +243,7 @@ function PlanForm({
     }
     setError("");
     try {
-      const response = await fetch(`/api/v1/children/${child.id}/custody-plan`, {
+      const response = await authorizedFetch(`/api/v1/children/${child.id}/custody-plan`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${accessToken}`,

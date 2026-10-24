@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { FormEvent, useState } from "react";
+import { authorizedFetch } from "../auth/session";
 
 type Child = { id: string; name: string };
 type Proposed = Record<string, string>;
@@ -32,7 +33,7 @@ type ImportProps = {
 };
 
 async function getJson<T>(path: string, accessToken: string, onUnauthorized?: () => void): Promise<T> {
-  const response = await fetch(path, { headers: { Authorization: `Bearer ${accessToken}` } });
+  const response = await authorizedFetch(path, { headers: { Authorization: `Bearer ${accessToken}` } });
   if (response.status === 401) {
     onUnauthorized?.();
     throw new Error("Sessão expirada");
@@ -132,7 +133,7 @@ function ImportContent({ accessToken, onUnauthorized }: ImportProps) {
     }
     setError("");
     try {
-      const response = await fetch(`/api/v1/imports/${current.id}/approve`, {
+      const response = await authorizedFetch(`/api/v1/imports/${current.id}/approve`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -289,7 +290,7 @@ function UploadForm({
     body.set("childId", childId);
     body.set("file", file);
     try {
-      const response = await fetch("/api/v1/imports", {
+      const response = await authorizedFetch("/api/v1/imports", {
         method: "POST",
         headers: { Authorization: `Bearer ${accessToken}` },
         body,
