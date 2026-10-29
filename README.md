@@ -33,7 +33,7 @@ Fases 0 a 6, prefixo `/api/v1`: auth, família, plano, calendário mensal, exce�
 ## Ainda em aberto
 
 - Papéis de quem vê e quem edita: só quando existir acesso compartilhado.
-- Onde a API, o Postgres e a tela sobem fora desta máquina.
+- Na hora de publicar: API na Railway ou na Render, Postgres na Railway ou no Supabase, tela em Next na Vercel. Nada disso está no ar. A tela desta máquina continua em Vite.
 
 ## Como rodar
 
@@ -106,4 +106,4 @@ http://localhost:5173 encaminha `/api` para `localhost:8086`.
 
 ## Próximo
 
-Nomear onde a API sobe.
+Publicar só quando for a hora. Até lá, API, Postgres e tela seguem nesta máquina.

@@ -1006,6 +1006,10 @@ Decisões fechadas para hospedar os arquivos
     remoto envia a cópia e aplica esse prazo. A tarefa das 02:00 não é
     criada pelo script. O script local não apaga cópia antiga.
 
+-   Fora desta máquina, a API sobe na Railway ou na Render, o Postgres
+    na Railway ou no Supabase, e a tela em Next na Vercel. A publicação
+    fica para depois. A tela atual continua em Vite.
+
 Decisões ainda em aberto
 
 -   Papéis/permissões exatos em family_access quando o acesso
